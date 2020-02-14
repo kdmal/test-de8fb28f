@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row" id="app" v-cloack>{% raw %}
+
+    <div class="col-md-6">
+      <h3>Token</h3>
+      <p>Available tokens</p>
+      <div class="row" v-for="x in tokens">
+        <label>
+          <input type="radio" :value="x" v-model="token">
+          {{x}}
+        </label>
+      </div>
+      <div class="form" v-show="token" v-show="!lock.upload">
+        <button :disabled="!file" @click="upload">Upload</button>
+        <input type="file" @change="$event=>file=$event.target">
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <h3>Files</h3>
+      <p>Uploaded files</p>
+      <table class="table table-sm table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>UUID</th>
+                <th>ext</th>
+                <th>status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-show="!files.length">
+                <td colspan=3 class="text-center">Empty</td>
+            </tr>
+            <tr v-for="x in files" :key="x.uuid">
+                <td>
+                    {{x.uuid}}
+                    <button @click="del(x)">delete</button>
+                    <button @click="download(x)" v-if="x.status==='SUCCESS'">download</button>
+                </td>
+                <td>{{x.ext}}</td>
+                <td>{{x.status}}</td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+  {% endraw %}</div>
+{% endblock %}
+
+{% block js %}
+<script type="module" src="/static/files/js/app.js"></script>
+{% endblock %}

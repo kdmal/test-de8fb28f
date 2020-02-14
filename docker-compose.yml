@@ -1,0 +1,56 @@
+version: '1'
+
+services:
+
+    app:
+        build:
+            context: ./app
+        environment:
+            - DEV=on
+            - FLASK_APP=flaskr
+            - UPLOAD_DIR=/mnt/files
+            - GUNICORN_TEMPDIR=/mnt/tmp
+            - GUNICORN_HOST=0.0.0.0
+            - GUNICORN_PORT=8070
+            - CELERY_RESULT_BACKEND=redis://redis:6379
+            - CELERY_BROKER_URL=redis://redis:6379
+        depends_on:
+            - redis
+            - celery
+        volumes:
+            - ./app/mnt:/mnt
+            - ./app/flaskr:/app/flaskr
+        command: gunicorn --config ./flaskr/conf/gunicorn.py flaskr:app
+        ports:
+            - 8070:8070
+        networks:
+            - app
+            - redis
+
+    redis:
+        image: redis:5.0.7-alpine
+        ports:
+            - 8379:6739
+        networks:
+            - redis
+
+    celery:
+        build:
+            context: ./app
+        environment:
+            - FLASK_APP=flaskr
+            - UPLOAD_DIR=/mnt/files
+            - CELERY_RESULT_BACKEND=redis://redis:6379
+            - CELERY_BROKER_URL=redis://redis:6379
+        command: celery -A flaskr.celery_app worker
+        volumes:
+            - ./app/mnt:/mnt
+            - ./app/flaskr:/app/flaskr
+        networks:
+            - redis
+
+networks:
+    redis:
+        bridge
+    app:
+        bridge
